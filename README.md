@@ -1,6 +1,7 @@
 # AI4Science - A practice repository for artificial intelligent for science projects
 
 *<center> Talk is cheap. Show me the code. -- Linus Torvalds </center>*
+*<center> 革命尚未成功，同志仍需努力 -- 孙中山 </center>*
 
 ## I. Introduction
 
