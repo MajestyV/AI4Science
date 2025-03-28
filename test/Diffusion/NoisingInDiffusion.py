@@ -1,8 +1,22 @@
-import torch
+# 有时pycharm的文件结构和cmd的文件结构不一样，在cmd中运行会显示：ModuleNotFoundError: No module named 'src'
+# 这可以通过在脚本开头添加项目根目录到sys.path中解决，详情请参考：https://blog.csdn.net/qq_42730750/article/details/119799157
+import os
+import sys
+project_path = os.path.abspath(os.path.join(os.path.join(os.getcwd(), '..'), '..'))  # 项目根目录
+sys.path.append(project_path)  # 添加路径到系统路径中
+
+demo_loc = f'{project_path}/results/demo'
+
+###################################################以下是代码的正式部分#####################################################
+
 import math
-import numpy as np
+
+import torch
+# from torch import tensor
+
+# import numpy as np
 from PIL import Image
-import requests
+# import requests
 import matplotlib.pyplot as plot
 import cv2
 
@@ -56,7 +70,7 @@ def extract(a, t, x_shape):
 def q_sample(x_start, t, noise=None):
     if noise is None:
         noise = torch.randn_like(x_start)
-        cv2.imwrite('noise.png', noise.numpy() * 255)
+        cv2.imwrite(f'{demo_loc}/noise.png', noise.numpy() * 255)
 
     sqrt_alphas_cumprod_t = extract(sqrt_alphas_cumprod, t, x_start.shape)
     sqrt_one_minus_alphas_cumprod_t = extract(
@@ -79,24 +93,27 @@ def get_noisy_image(x_start, t):
     return noisy_image
 
 
-...
+# ...
 
-# 展示图像, t=0, 50, 100, 500的效果
-x_start = cv2.imread('img.png') / 255.0
-x_start = torch.tensor(x_start, dtype=torch.float)
-cv2.imwrite('img_0.png', get_noisy_image(x_start, torch.tensor([0])) * 255.0)
-cv2.imwrite('img_50.png', get_noisy_image(x_start, torch.tensor([50])) * 255.0)
-cv2.imwrite('img_100.png', get_noisy_image(x_start, torch.tensor([100])) * 255.0)
-cv2.imwrite('img_500.png', get_noisy_image(x_start, torch.tensor([500])) * 255.0)
-cv2.imwrite('img_999.png', get_noisy_image(x_start, torch.tensor([999])) * 255.0)
+if __name__ == '__main__':
+    img_title = 'Fatalis'
 
-sqrt_alphas_cumprod_t: tensor([[[0.9999]]], dtype=torch.float64)
-sqrt_one_minus_alphas_cumprod_t: tensor([[[0.0100]]], dtype=torch.float64)
-sqrt_alphas_cumprod_t: tensor([[[0.9849]]], dtype=torch.float64)
-sqrt_one_minus_alphas_cumprod_t: tensor([[[0.1733]]], dtype=torch.float64)
-sqrt_alphas_cumprod_t: tensor([[[0.9461]]], dtype=torch.float64)
-sqrt_one_minus_alphas_cumprod_t: tensor([[[0.3238]]], dtype=torch.float64)
-sqrt_alphas_cumprod_t: tensor([[[0.2789]]], dtype=torch.float64)
-sqrt_one_minus_alphas_cumprod_t: tensor([[[0.9603]]], dtype=torch.float64)
-sqrt_alphas_cumprod_t: tensor([[[0.0064]]], dtype=torch.float64)
-sqrt_one_minus_alphas_cumprod_t: tensor([[[1.0000]]], dtype=torch.float64)
+    # 展示图像, t=0, 50, 100, 500的效果
+    x_start = cv2.imread(f'{demo_loc}/{img_title}.png') / 255.0
+    x_start = torch.tensor(x_start, dtype=torch.float)
+    cv2.imwrite(f'{demo_loc}/{img_title}_0.png', get_noisy_image(x_start, torch.tensor([0])) * 255.0)
+    cv2.imwrite(f'{demo_loc}/{img_title}_50.png', get_noisy_image(x_start, torch.tensor([50])) * 255.0)
+    cv2.imwrite(f'{demo_loc}/{img_title}_100.png', get_noisy_image(x_start, torch.tensor([100])) * 255.0)
+    cv2.imwrite(f'{demo_loc}/{img_title}_500.png', get_noisy_image(x_start, torch.tensor([500])) * 255.0)
+    cv2.imwrite(f'{demo_loc}/{img_title}_999.png', get_noisy_image(x_start, torch.tensor([999])) * 255.0)
+
+    # sqrt_alphas_cumprod_t: tensor([[[0.9999]]], dtype=torch.float64)
+    # sqrt_one_minus_alphas_cumprod_t: tensor([[[0.0100]]], dtype=torch.float64)
+    # sqrt_alphas_cumprod_t: tensor([[[0.9849]]], dtype=torch.float64)
+    # sqrt_one_minus_alphas_cumprod_t: tensor([[[0.1733]]], dtype=torch.float64)
+    # sqrt_alphas_cumprod_t: tensor([[[0.9461]]], dtype=torch.float64)
+    # sqrt_one_minus_alphas_cumprod_t: tensor([[[0.3238]]], dtype=torch.float64)
+    # sqrt_alphas_cumprod_t: tensor([[[0.2789]]], dtype=torch.float64)
+    # sqrt_one_minus_alphas_cumprod_t: tensor([[[0.9603]]], dtype=torch.float64)
+    # sqrt_alphas_cumprod_t: tensor([[[0.0064]]], dtype=torch.float64)
+    # sqrt_one_minus_alphas_cumprod_t: tensor([[[1.0000]]], dtype=torch.float64)

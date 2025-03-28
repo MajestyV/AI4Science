@@ -15,7 +15,7 @@ Anyway, in theory it should work with any python version >= 2.7.
 Required packages:
 - *Machine learning & Artificial Intelligence*: [Scikit-learn](https://scikit-learn.org/stable/) & [Pytorch](https://pytorch.org/)
 - *Computer vision & Image processing*: [OpenCV](https://opencv.org/)
-
+- *Visualization*: [Matplotlib](https://matplotlib.org/) & [Seaborn](https://seaborn.pydata.org/)
 
 
 XXX
