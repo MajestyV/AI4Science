@@ -13,8 +13,8 @@ Recommended python version: 3.10 (which is used by myself)
 Anyway, in theory it should work with any python version >= 2.7.
 
 Required packages:
-- *Machine learning*: [Scikit-learn](https://scikit-learn.org/stable/) & [Pytorch](https://pytorch.org/)
-
+- *Machine learning & Artificial Intelligence*: [Scikit-learn](https://scikit-learn.org/stable/) & [Pytorch](https://pytorch.org/)
+- *Computer vision & Image processing*: [OpenCV](https://opencv.org/)
 
 
 
