@@ -1,7 +1,8 @@
 # AI4Science - A practice repository for artificial intelligent for science projects
 
 *<center> Talk is cheap. Show me the code. -- Linus Torvalds </center>*
-*<center> 革命尚未成功，同志仍需努力 -- 孙中山 </center>*
+
+*<center> 紙上得來終覺淺 絕知此事要躬行 </center>*
 
 ## I. Introduction
 
@@ -14,9 +15,11 @@ Recommended python version: 3.10 (which is used by myself)
 Anyway, in theory it should work with any python version >= 2.7.
 
 Required packages:
+- *Scientific calculus*: [Numpy](https://numpy.org/) & [Scipy](https://www.scipy.org/)
 - *Machine learning & Artificial Intelligence*: [Scikit-learn](https://scikit-learn.org/stable/) & [Pytorch](https://pytorch.org/)
 - *Computer vision & Image processing*: [OpenCV](https://opencv.org/)
 - *Visualization*: [Matplotlib](https://matplotlib.org/) & [Seaborn](https://seaborn.pydata.org/)
+- *Progress bar*: [Tqdm](https://pypi.org/project/tqdm/)
 
 
 XXX
