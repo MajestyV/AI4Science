@@ -119,6 +119,8 @@ class ODE_adjoint(torch.autograd.Function):
 
         return z
 
+    # ODEsolver: Callable = ODEsolver_Euler
+
     @staticmethod
     def backward(ctx, dLdz, ODEsolver: Callable = ODEsolver_Euler):
         """
@@ -236,10 +238,10 @@ class ODE_adjoint(torch.autograd.Function):
             adj_z += dLdz_0
             adj_t[0] = adj_t[0] - dLdt_0
 
-        # 输出的数量需要和前向过程中输入的数量对应起来
-        # Gradients for each input of forward.
+        # 输出的数量需要和前向过程中输入的数量对应起来，这很重要！！！（所以这里用两个None来分别代表模型本身和ODE求解器的gradient）
+        # Number of gradients returned should be strictly equal to the number of each input to forward module.
         # dL/dz, dL/dt for all discrete times, dL/dp, None for function call.
-        return adj_z.view(batch_size, *z_shape), adj_t, adj_p, None
+        return adj_z.view(batch_size, *z_shape), adj_t, adj_p, None, None
 
 class NeuralODE(nn.Module):
     ''' 回归到 torch.nn.Module，将 Neural ODE 的所有逻辑都封装在其中 '''

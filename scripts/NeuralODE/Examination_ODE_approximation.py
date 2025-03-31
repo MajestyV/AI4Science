@@ -1,4 +1,6 @@
 import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'  # 避免多个 OpenMP 运行时库实例的问题
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -68,13 +70,16 @@ def plot_trajectories(obs=None, times=None, trajs=None, save=None, figsize=(16, 
             plt.savefig(save)
 
 if __name__ == '__main__':
-    dev = 0
+    examination_title = 'ODE_approximation'
 
-    ODE_true = Example_spiral().to(dev)  # 真实的ODE
-    ODE_NN = Random_ODEF().to(dev)  # 随机初始化的神经网络ODE
+    # 选择计算设备
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 单卡 (单GPU) 推荐使用这行代码
 
-    num_steps = 1000  # 训练迭代次数
-    plot_freq = 100  # 每隔多少步画一次图
+    ODE_truth = NeuralODE.NeuralODE(func=Example_spiral()).to(device)  # 目标ODE
+    ODE_NN = NeuralODE.NeuralODE(func=Random_ODEF()).to(device)        # 随机初始化的神经网络ODE
+
+    num_steps = 700  # 训练迭代次数
+    plot_freq = 10   # 每隔多少步画一次图
 
     use_cuda = torch.cuda.is_available()  # 判断是否用GPU加速
     print(f"Use CUDA: {use_cuda}")        # 记录CUDA的使用情况
@@ -93,7 +98,7 @@ if __name__ == '__main__':
 
 
     times_np = np.linspace(0, t_max, num=n_points)  # time piont
-    times_np = np.hstack([times_np[:, None]])  # (n_points, 1)
+    times_np = np.hstack([times_np[:, None]])       # (n_points, 1)
 
     # (n_points, 1, 1) 3 个维度分别对应时间序列长度(`time_len`), `batch size`, 向量编码维度
     times = torch.from_numpy(times_np[:, :, None]).to(z0)
@@ -101,17 +106,14 @@ if __name__ == '__main__':
 
     # 利用真实的 ODE 计算出所有时间点的状态 z(所有离散时刻所对应的点的位置)，它们连起来构成了目标轨迹 (Solve out the truth trajectory)
     # (n_points, 1, 2)
-    # obs = ODE_true(z0, times, return_whole_sequence=True).detach()
-    obs = ODE_true(z0, times).detach()
+    obs = ODE_truth(z0, times, return_whole_sequence=True ).detach()
     obs = obs + torch.randn_like(obs) * 0.01  # 为了更具真实性，于是加上一点噪声(增添生活中的随机性)
+    # print(f"obs shape: {obs.shape}")
 
     # Get trajectory of random timespan
-    # 一个 batch 中，时间序列长度的上下限分别是 `min_delta_time` 和 `max_delta_time`
-    min_delta_time = 1.0
-    max_delta_time = 5.0
-    # 一个 batch 最多包含的离散时间点数量
-    max_points_num = 32
-
+    min_delta_time = 1.0  # 一个 batch 中，时间序列长度的上限，时间步间隔的下限
+    max_delta_time = 5.0  # 一个 batch 中，时间序列长度的下限，时间步间隔的上限
+    max_points_num = 32   # 一个 batch 最多包含的离散时间点数量
 
     def create_batch():
         """ 生成一个 batch 的 data: 对轨迹进行采样，只截取完整轨迹的一部分 """
@@ -131,8 +133,7 @@ if __name__ == '__main__':
     # 迭代一定步数来训练网络
     for i in tqdm(range(num_steps), desc="Training Neural ODE"):
         obs_, ts_ = create_batch()
-        # z_ = ODE_NN(obs_[0], ts_, return_whole_sequence=True)  # NOTE: 只需取第一个轨迹点送入网络中让其预测该 batch 中剩下的所有轨迹点
-        z_ = ODE_NN(obs_[0], ts_)
+        z_ = ODE_NN(obs_[0], ts_, return_whole_sequence=True)  # NOTE: 只需取第一个轨迹点送入网络中让其预测该 batch 中剩下的所有轨迹点
         loss = F.mse_loss(z_, obs_.detach())  # 然后与真实的轨迹点对比算出 loss， 这里用的是均方误差损失
 
         optimizer.zero_grad()
@@ -145,7 +146,7 @@ if __name__ == '__main__':
 
         if i % plot_freq == 0:
             # 训练一段时间后，让网络去预测整条完整的轨迹(而非仅仅是一个 batch 的轨迹)
-            # z_p = ODE_NN(z0, times, return_whole_sequence=True)
-            z_p = ODE_NN(z0, times)
-            plot_trajectories(obs=[obs], times=[times], trajs=[z_p], save=f'{saving_dir_dict[working_loc]}/ODE_approximation_{i}.png')
-            # clear_output(wait=True)
+            z_p = ODE_NN(z0, times, return_whole_sequence=True)
+            plot_trajectories(obs=[obs], times=[times], trajs=[z_p], save=f'{saving_dir_dict[working_loc]}/{examination_title}_{i}.png')
+
+            plt.close()  # 关闭图像释放内存
