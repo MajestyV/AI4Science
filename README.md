@@ -21,6 +21,19 @@ Required packages:
 - *Visualization*: [Matplotlib](https://matplotlib.org/) & [Seaborn](https://seaborn.pydata.org/)
 - *Progress bar*: [Tqdm](https://pypi.org/project/tqdm/)
 
+## III. Installation
+
+XXX
+
+```Shell
+
+```
+
+## External links to useful resources
+
+Datasets:
+- *Material science*: [Materials Project](https://materialsproject.org/) & [AFLOW](http://www.aflowlib.org/)
+
 
 XXX
 - *Data acquisition*: [Pandas](https://pandas.pydata.org/) & [Xlrd](https://xlrd.readthedocs.io/en/latest/)
