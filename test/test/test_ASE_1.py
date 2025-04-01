@@ -17,10 +17,18 @@ saving_dir_dict = {'Lingjiang': 'E:/PhD_research/AI4Science/Working_dir'}
 if __name__ == '__main__':
     dataset_title = 'iso17'
 
-    with connect(f'{dataset_dir_dict[working_loc]}/{dataset_title}/reference.db') as conn:
+    with connect(f'{dataset_dir_dict[working_loc]}/{dataset_title}/reference.db') as database:
+        database
+
+       #  breakpoint()
+
+
+        # print(conn.names)
+
+        breakpoint()
 
         # 读取表格
-        for row in conn.select(limit=1000):
+        for row in database.select(limit=20):
             config = row.toatoms()  # 将行转换为ASE原子对象
             config_id = row['id']  # 获取结构的id
 
@@ -30,6 +38,7 @@ if __name__ == '__main__':
             print(row['positions'])
             print(row['total_energy'])
             print(row.data['atomic_forces'])
+
 
             # view(config, viewer='VMD')  # 使用ASE的可视化工具查看原子结构
 
