@@ -18,6 +18,7 @@ Required packages:
 - *Scientific calculus*: [Numpy](https://numpy.org/) & [Scipy](https://www.scipy.org/)
 - *Machine learning & Artificial Intelligence*: [Scikit-learn](https://scikit-learn.org/stable/) & [Pytorch](https://pytorch.org/)
 - *Computer vision & Image processing*: [OpenCV](https://opencv.org/)
+- *Material science*: [ASE](https://wiki.fysik.dtu.dk/ase/install.html)
 - *Visualization*: [Matplotlib](https://matplotlib.org/) & [Seaborn](https://seaborn.pydata.org/)
 - *Progress bar*: [Tqdm](https://pypi.org/project/tqdm/)
 
@@ -32,7 +33,13 @@ XXX
 ## External links to useful resources
 
 Datasets:
-- *Material science*: [Materials Project](https://materialsproject.org/) & [AFLOW](http://www.aflowlib.org/)
+- *Material science*: 
+
+[Quantum Machine](http://quantum-machine.org/)
+
+- 
+- [Materials Project](https://materialsproject.org/) & [AFLOW](http://www.aflowlib.org/)
+
 
 
 XXX
