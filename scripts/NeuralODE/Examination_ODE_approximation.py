@@ -131,7 +131,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(ODE_NN.parameters(), lr=0.01)  # 优化器，这里选用Adam
 
     # 迭代一定步数来训练网络
-    for i in tqdm(range(num_steps), desc="Training Neural ODE"):
+    for i in tqdm(range(num_steps), desc="Training NeuralODE"):
         obs_, ts_ = create_batch()
         z_ = ODE_NN(obs_[0], ts_, return_whole_sequence=True)  # NOTE: 只需取第一个轨迹点送入网络中让其预测该 batch 中剩下的所有轨迹点
         loss = F.mse_loss(z_, obs_.detach())  # 然后与真实的轨迹点对比算出 loss， 这里用的是均方误差损失
