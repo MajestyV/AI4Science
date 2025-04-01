@@ -20,7 +20,7 @@ if __name__ == '__main__':
     with connect(f'{dataset_dir_dict[working_loc]}/{dataset_title}/reference.db') as conn:
 
         # 读取表格
-        for row in conn.select(limit=1000):
+        for row in conn.select(limit=3000):
             config = row.toatoms()  # 将行转换为ASE原子对象
             config_id = row['id']  # 获取结构的id
 

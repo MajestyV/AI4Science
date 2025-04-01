@@ -24,7 +24,7 @@ import torch.nn as nn
 from torch import Tensor
 from torch.autograd import Variable
 
-from src import to_np, NeuralODE
+from src import to_np, NeuralODE  # 导入自定义模型
 
 # 定义一个只包含线性层的神经网络来充当ODE函数，要继承ODE_func类，来获取计算vJp的能力
 class Linear_ODEF(NeuralODE.ODE_func):
@@ -138,6 +138,10 @@ if __name__ == '__main__':
     # (n_points, num_spirals, 1)
     samp_ts = times
 
+    print(samp_trajs.shape)
+
+    breakpoint()
+
     ################################################# 模型训练及轨迹生成 ##################################################
     use_cuda = torch.cuda.is_available()  # 判断是否用GPU加速
 
@@ -145,7 +149,7 @@ if __name__ == '__main__':
     if use_cuda:
         model.cuda()  # 将模型部署在CUDA上
 
-    device = next(ODE_NN.parameters()).device  # 查看计算设备并确认
+    device = next(model.parameters()).device  # 查看计算设备并确认
     print(f'Use CUDA: {use_cuda} - Device used: {device}')  # 记录CUDA的使用情况
 
     optim = torch.optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=learning_rate)  # 优化器，这里选用Adam
@@ -153,7 +157,6 @@ if __name__ == '__main__':
     preload = False
     if preload:
         model.load_state_dict(torch.load(f'{default_model_path}/{model_name}.sd'))
-
 
     batch_mean_loss, batch_median_loss = ([],[])  # 创建两个列表用以记录训练batch的均值以及中位数loss
 
