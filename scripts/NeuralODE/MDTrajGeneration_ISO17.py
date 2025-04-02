@@ -23,15 +23,15 @@ from src import to_np, ConfigSimilarity_MSE, NeuralODE  # 导入自定义模型
 if __name__ == '__main__':
     ################################################### 一些全局设定 #####################################################
     model_name = 'ODE-VAE_ISO17'
-    dataset_name = 'MDTraj_nstep-4000.npy'
+    dataset_name = 'MDTraj_nstep-3999.npy'
 
     # 数据集相关设定
-    num_sampled = 1500  # 采样的点数
+    num_sampled = 500  # 采样的点数
     max_len = 3000  # 轨迹采样点的最大长度
 
     learning_rate = 1e-3  # 优化器的学习率
 
-    num_epochs = 1000  #
+    num_epochs = 1500  #
 
     dump = 50  #  保存模型训练结果的间隔
 

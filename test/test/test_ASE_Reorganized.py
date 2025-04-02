@@ -19,7 +19,7 @@ saving_dir_dict = {'Lingjiang': 'E:/PhD_research/AI4Science/Working_dir'}
 if __name__ == '__main__':
     dataset_title = 'iso17'
 
-    num_points = 4000
+    num_points = 3999
     num_atoms = 19
     num_dim = 3
 
