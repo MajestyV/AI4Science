@@ -12,7 +12,9 @@ class GRU_encoder(nn.Module):
         # 解压缩参数，分别为输入维度、隐藏层维度、潜空间维度
         self.input_dim, self.hidden_dim, self.latent_dim = (input_dim, hidden_dim, latent_dim)
 
+        # self.rnn = nn.GRU(hidden_dim, hidden_dim, num_layers)
         self.gru = nn.GRU(input_dim+1, hidden_dim, num_layers)  # 输入维度加1是因为会将时间向量(维度为1)拼接到输入中
+        # self.lstm = nn.LSTM(input_dim+1, hidden_dim, num_layers)
         self.hid2lat = nn.Linear(hidden_dim, 2*latent_dim)  # 线性层将隐藏状态投影到潜空间(维度乘2是因为要输出均值向量和对数方差向量)
 
     def forward(self, x, t):
