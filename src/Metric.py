@@ -6,7 +6,8 @@ def ConfigSimilarity_MSE(config_1, config_2):
     :return: 均方误差
     """
     config_delta = config_1 - config_2  # 计算两个分子结构之间的差异
-    mse = np.mean(config_delta ** 2)  # 计算均方误差
+    config_delta_norm_sq = np.linalg.norm(config_delta, axis=1)**2  # 计算每个原子坐标差异的范数
+    mse = np.mean(config_delta_norm_sq ** 2)  # 计算误差
     return mse
 
 if __name__ == "__main__":
@@ -29,8 +30,8 @@ if __name__ == "__main__":
     config_1, config_2 = np.array(config_1), np.array(config_2)  # 转换为numpy数组
 
     # 计算均方误差
-    # mse = ConfigSimilarity_MSE(config_1, config_2)
-    mse = ConfigSimilarity_MSE(config_1, config_1)
+    mse = ConfigSimilarity_MSE(config_1, config_2)
+    # mse = ConfigSimilarity_MSE(config_1, config_1)
 
 
     print(f"均方误差: {mse}")
