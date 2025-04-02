@@ -19,9 +19,6 @@ from tqdm import tqdm  # 进度条可视化模块
 
 # 导入pytorch环境
 import torch
-import torch.nn as nn
-from torch import Tensor
-from torch.autograd import Variable
 
 from src import to_np, ConfigSimilarity_MSE, NeuralODE  # 导入自定义模型
 
@@ -32,11 +29,15 @@ if __name__ == '__main__':
 
     learning_rate = 1e-3  # 优化器的学习率
 
-    num_epochs = 500  #
+    num_epochs = 1000  #
 
     dump = 50  #  保存模型训练结果的间隔
 
     preload = False  # 是否加载预训练模型
+
+    # 读取外推轨迹
+    # MD_traj_extra = np.load(f'{default_dataset_path}/MDTraj_nstep-10000.npy')  # 读取数据
+    # l_expolate = 3000  # 外推的长度
 
     ################################################### 数据导入模块 #####################################################
     print("Generating dataset...")
@@ -44,19 +45,11 @@ if __name__ == '__main__':
     MD_traj = np.load(f'{default_dataset_path}/{dataset_name}')  # 读取数据
     MD_traj = torch.from_numpy(MD_traj).to(torch.float32)  # 将数据转换为torch.Tensor格式
 
-    # time = torch.from_numpy(np.linspace(0,))  # 生成时间序列，并转换为torch.Tensor格式
-
-    # time point
-    # times_np = np.linspace(0, t_max, num=n_points)
-    # (n_points, num_spirals)
-    # times_np = np.hstack([times_np[:, None]] * num_spirals)
-    # (n_points, num_spirals, 1)
-    # times = torch.from_numpy(times_np[:, :, None]).to(torch.float32)
-
     # 因为后面有串接操作，所以这里需要将数据扩展到跟MD_traj一样的维度
-    # time_origin = np.linspace(0, 1, MD_traj.shape[0])  # 生成时间序列
-    time_origin = np.array([i for i in range(MD_traj.shape[0])])  # 生成时间序列
-    time = np.hstack([time_origin[:, None]] * MD_traj.shape[1])
+    time = np.linspace(0, 1, MD_traj.shape[0])  # 生成时间序列
+    time_origin = time  # 保存原始时间序列
+    # time_origin = np.array([i for i in range(MD_traj.shape[0])])  # 生成时间序列
+    time = np.hstack([time[:, None]] * MD_traj.shape[1])
     time = torch.from_numpy(time[:, :, None]).to(torch.float32)  # 将数据转换为torch.Tensor格式
 
     l_dataset = MD_traj.shape[0]  # 轨迹的长度
@@ -71,6 +64,7 @@ if __name__ == '__main__':
     permutation = np.random.permutation(time.shape[0])  # Select indices
     np.random.shuffle(permutation)
     permutation = np.sort(permutation[:max_len])  # Sort indices
+    np.save(f'{default_saving_path}/Permutation.npy', permutation)
 
     time_sampled = time[permutation]  # 根据采样的时间序列选取对应的轨迹
     MD_traj_sampled = MD_traj[permutation]  # 根据采样的时间序列选取对应的轨迹
@@ -143,10 +137,12 @@ if __name__ == '__main__':
             model_predict = to_np(samp_trajs_p)
             np.save(f'{default_saving_path}/{model_name}_Epoch-{epoch_idx}.npy', model_predict)  # 保存模型的输出
 
+            MSE_traj = [ConfigSimilarity_MSE(to_np(model_predict[i]), to_np(MD_traj[i])) for i in range(l_dataset)]
+
+            np.savetxt(f'{default_saving_path}/{model_name}_Epoch-{epoch_idx}_MSE.txt', [time_origin,MSE_traj])  # 保存模型和 Ground truth 的差别
+
             # 画图
             plt.figure(figsize=(10, 4))
-
-            MSE_traj = [ConfigSimilarity_MSE(to_np(model_predict[i]), to_np(MD_traj[i])) for i in range(l_dataset)]
 
             plt.plot(time_origin, MSE_traj)
 
