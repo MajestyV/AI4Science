@@ -17,15 +17,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm  # 进度条可视化模块
 
-# 导入pytorch环境
-import torch
-
+import torch  # 导入pytorch环境
 from src import to_np, ConfigSimilarity_MSE, NeuralODE  # 导入自定义模型
 
 if __name__ == '__main__':
     ################################################### 一些全局设定 #####################################################
     model_name = 'ODE-VAE_ISO17'
-    dataset_name = 'MDTraj_nstep-5000.npy'
+    dataset_name = 'MDTraj_nstep-4000.npy'
+
+    # 数据集相关设定
+    num_sampled = 1500  # 采样的点数
+    max_len = 3000  # 轨迹采样点的最大长度
 
     learning_rate = 1e-3  # 优化器的学习率
 
@@ -35,10 +37,6 @@ if __name__ == '__main__':
 
     preload = False  # 是否加载预训练模型
 
-    # 读取外推轨迹
-    # MD_traj_extra = np.load(f'{default_dataset_path}/MDTraj_nstep-10000.npy')  # 读取数据
-    # l_expolate = 3000  # 外推的长度
-
     ################################################### 数据导入模块 #####################################################
     print("Generating dataset...")
 
@@ -47,26 +45,19 @@ if __name__ == '__main__':
 
     # 因为后面有串接操作，所以这里需要将数据扩展到跟MD_traj一样的维度
     time = np.linspace(0, 1, MD_traj.shape[0])  # 生成时间序列
-    time_origin = time  # 保存原始时间序列
-    # time_origin = np.array([i for i in range(MD_traj.shape[0])])  # 生成时间序列
+    time_origin = time  # 保存原始时间序列，方便后画图
     time = np.hstack([time[:, None]] * MD_traj.shape[1])
     time = torch.from_numpy(time[:, :, None]).to(torch.float32)  # 将数据转换为torch.Tensor格式
 
     l_dataset = MD_traj.shape[0]  # 轨迹的长度
 
-    # print(time.shape)
-
-    # print(time)
-
     ''' 不规则采样 '''
-    # max_len = np.random.choice([30, 50, 100])  # Max time length
-    max_len = 3000 # Max time length
-    permutation = np.random.permutation(time.shape[0])  # Select indices
-    np.random.shuffle(permutation)
-    permutation = np.sort(permutation[:max_len])  # Sort indices
-    np.save(f'{default_saving_path}/Permutation.npy', permutation)
+    permutation = np.random.permutation(max_len)                    # Select indices
+    np.random.shuffle(permutation)                                  # Shuffle indices
+    permutation = np.sort(permutation[:num_sampled])                # Sort indices
+    np.save(f'{default_saving_path}/Permutation.npy', permutation)  # 保存采样的时间序列
 
-    time_sampled = time[permutation]  # 根据采样的时间序列选取对应的轨迹
+    time_sampled = time[permutation]        # 根据采样的时间序列选取对应的轨迹
     MD_traj_sampled = MD_traj[permutation]  # 根据采样的时间序列选取对应的轨迹
 
     ################################################# 模型训练及轨迹生成 ##################################################
@@ -104,11 +95,9 @@ if __name__ == '__main__':
         # (max_len, batch_size, 2); (batch_size, latent_dim); (batch_size, latent_dim); (batch_size, latent_dim)
         x_p, z, z_mean, z_log_var = model(x, t)
 
-        # VAE loss 包括 reconstruction loss & KL-Divergence
-        # (batch_size,)
+        # VAE loss 包括 reconstruction loss & KL-Divergence [Shape: (batch_size,)]
         kl_loss = -0.5 * torch.sum(1 + z_log_var - z_mean ** 2 - torch.exp(z_log_var), -1)
-        # 根据最小化正态分布的负对数似然所推出来的式子(但不计方差那部分的损失)
-        # (batch_size,)
+        # 根据最小化正态分布的负对数似然所推出来的式子(但不计方差那部分的损失) [Shape: (batch_size,)]
         reconstruction_loss = 0.5 * ((x - x_p) ** 2).sum(-1).sum(0)
         loss = torch.mean(reconstruction_loss + kl_loss) / max_len
         losses.append(loss.item())
@@ -116,14 +105,11 @@ if __name__ == '__main__':
         loss.backward()
         optim.step()
 
-        # print(f"Epoch {epoch_idx}")
+        # 序列生成部分
+        frm, to, to_seed = 0, l_dataset, max_len
 
-        frm, to, to_seed = 0, 5000, 3000
-
-        # 截取部分序列
-        seed_trajs = MD_traj_sampled[frm:to_seed]
-        # 完整的时间序列
-        time_pred = time[frm:to]
+        seed_trajs = MD_traj_sampled[frm:to_seed]  # 截取部分序列
+        time_pred = time[frm:to]                   # 完整的时间序列
         if use_cuda:
             seed_trajs = seed_trajs.to(device)
             time_pred = time_pred.to(device)
@@ -131,23 +117,17 @@ if __name__ == '__main__':
         # 由截取的部分序列外推至整个序列 [shape: (to - frm, num_spirals, 2)]
         samp_trajs_p = to_np(model.generate_with_seed(seed_trajs, time_pred))
 
-        # print(samp_trajs_p.shape)
-
         if (epoch_idx == 0) or ((epoch_idx + 1) % dump == 0):  # 按照一定的间隔保存模型的输出
-            model_predict = to_np(samp_trajs_p)
+            model_predict = to_np(samp_trajs_p)  # 将模型的输出转换为numpy格式
+            MSE_traj = [ConfigSimilarity_MSE(to_np(model_predict[i]), to_np(MD_traj[i])) for i in range(l_dataset)]  # 计算模型输出和真实轨迹的均方误差
+
             np.save(f'{default_saving_path}/{model_name}_Epoch-{epoch_idx}.npy', model_predict)  # 保存模型的输出
-
-            MSE_traj = [ConfigSimilarity_MSE(to_np(model_predict[i]), to_np(MD_traj[i])) for i in range(l_dataset)]
-
-            np.savetxt(f'{default_saving_path}/{model_name}_Epoch-{epoch_idx}_MSE.txt', [time_origin,MSE_traj])  # 保存模型和 Ground truth 的差别
+            np.savetxt(f'{default_saving_path}/{model_name}_Epoch-{epoch_idx}_MSE.txt', [time_origin,MSE_traj])  # 保存均方误差
 
             # 画图
             plt.figure(figsize=(10, 4))
-
             plt.plot(time_origin, MSE_traj)
-
             plt.savefig(f'{default_saving_path}/{model_name}_Epoch-{epoch_idx}.png')
-
             # plt.show(block=True)
             plt.close()  # 关闭图像释放内存
 
@@ -161,6 +141,7 @@ if __name__ == '__main__':
         file.write(f'Epoch {i}: Mean Loss - {batch_mean_loss[i]}, Median Loss - {batch_median_loss[i]}')
         file.write('\n')  # 换行
     file.close()
+    np.save(f'{default_saving_path}/{model_name}_loss.npy', np.array([batch_mean_loss, batch_median_loss]))  # 保存loss
 
     torch.save(model.state_dict(), f'{default_model_path}/{model_name}.sd')  # 保存模型参数
     print(f'Checkpoint has been saved to: {default_model_path}/{model_name}.sd.')
